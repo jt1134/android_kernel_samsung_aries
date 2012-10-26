@@ -16,6 +16,9 @@
 #include <linux/sysfs.h>
 #include <linux/fastchg.h>
 
+#include <linux/io.h>
+#include <mach/regs-clock.h>
+
 int force_fast_charge;
 
 /* sysfs interface */
@@ -48,7 +51,7 @@ int force_fast_charge_init(void)
 {
 	int retval;
 
-	force_fast_charge = 0;
+	force_fast_charge = (readl(S5P_INFORM5)) ? 1 : 0;
 
         force_fast_charge_kobj = kobject_create_and_add("fast_charge", kernel_kobj);
         if (!force_fast_charge_kobj) {
