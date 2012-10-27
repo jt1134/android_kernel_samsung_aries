@@ -1,0 +1,16 @@
+show_progress(0.15, 5);
+package_extract_file("flash_image", "/tmp/flash_image");
+set_perm(0, 0, 0777, "/tmp/flash_image");
+package_extract_file("bml_over_mtd", "/tmp/bml_over_mtd");
+set_perm(0, 0, 0777, "/tmp/bml_over_mtd");
+package_extract_file("bml_over_mtd.sh", "/tmp/bml_over_mtd.sh");
+set_perm(0, 0, 0777, "/tmp/bml_over_mtd.sh");
+package_extract_file("boot.img", "/tmp/boot.img");
+ui_print("Flashing kernel...");
+run_program("/tmp/bml_over_mtd.sh", "boot", "72", "reservoir", "2004", "/tmp/boot.img");
+ui_print("Installing modules...");
+mount("ext4", "EMMC", "/dev/lvpool/system", "/system");
+package_extract_dir("system", "/system");
+unmount("/system");
+show_progress(0.150000, 5);
+ui_print("Done!");

@@ -5,6 +5,7 @@
 # edit CC to match your toolchain path if you're not working inside the CM/AOSP built tree
 #
 CC="../../../prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.6/bin/arm-linux-androideabi-"
+DATE=`date +%m%d`
 J=`cat /proc/cpuinfo | grep "^processor" | wc -l`
 WORK=`pwd`
 
@@ -40,7 +41,7 @@ fi
 # cleanup
 #
 make clean mrproper
-rm -f ramdisk/*.img
+rm -f ramdisk/*.img zip/{boot.img,*.zip,system/lib/modules/*}
 
 #
 # setup android initramfs
@@ -70,8 +71,21 @@ make -j $J ARCH=arm CROSS_COMPILE=$CC modules
 #
 # package
 #
-#TODO
+echo
+if ! cp arch/arm/boot/zImage zip/boot.img ; then
+	echo Sumthin done fucked up. I suggest you fix it.
+	echo
+	exit 1
+else
+	cp `find . -name *.ko` zip/system/lib/modules
+	echo Creating update zip...
+	echo
+	cd zip && zip -r kernel_update-$DATE.zip .
+fi
 
+#
+# Fin
+#
 echo
 echo Done !
 echo

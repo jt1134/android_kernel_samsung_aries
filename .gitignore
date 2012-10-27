@@ -82,3 +82,5 @@ GTAGS
 \#*#
 
 ramdisk/*.img
+zip/boot.img
+zip/*.zip
