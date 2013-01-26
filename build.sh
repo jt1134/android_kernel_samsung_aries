@@ -40,7 +40,7 @@ fi
 #
 # cleanup
 #
-make clean mrproper
+bash $WORK/clean
 rm -f ramdisk/*.img zip/{boot.img,*.zip,system/lib/modules/*}
 
 #
