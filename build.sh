@@ -4,88 +4,84 @@
 # setup environment
 # edit CC to match your toolchain path if you're not working inside the CM/AOSP built tree
 #
-CC="../../../prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.6/bin/arm-linux-androideabi-"
-DATE=`date +%m%d`
-J=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-WORK=`pwd`
+CC="../../../prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-"
+DATE=$(date +%m%d)
+J=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
+HOME=$(pwd)
+WORK=$(dirname $0)
+
+DIE() { exit 1; }
+LOG() { printf "$@\n\n"; }
+TRY() { "$@" || DIE; }
+ZIP() {
+	TRY cd zip;
+	TRY cp ../arch/arm/boot/zImage boot.img;
+	TRY cp $(find ../ -name *.ko) system/lib/modules;
+	TRY zip -r kernel_update-$DATE.zip . ;
+	TRY mv kernel_update-$DATE.zip $HOME
+}
 
 #
 # no CC?!? GTFO!
 #
-if [ ! -e "$CC"gcc ]; then
-	echo You must have a valid cross compiler installed !
-	echo
-	echo Would you like to download and automatically configure your toolchain ?
-	echo
-	echo Type Y or N
-	echo
+if [ ! -e "$WORK/$CC"gcc ]; then
+	LOG "You must have a valid cross compiler installed !"
+	LOG "Would you like to download and automatically configure your toolchain ?"
+	LOG "Type Y or N"
 	read answer
 
 	if [ $answer == 'Y' ]; then
-		echo This may take a while...
-		echo
-		cd ..
-		git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.6
-		echo
-		cd $WORK
-		sed -i "s/..\/..\/..\/prebuilts\/gcc\/linux-x86\/arm/../" $0
-		CC="../arm-linux-androideabi-4.6/bin/arm-linux-androideabi-"
+		LOG "This may take a while..."
+		TRY git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6 $WORK/../arm-eabi-4.6
+		TRY sed -i "s/..\/..\/..\/prebuilts\/gcc\/linux-x86\/arm/../g" $0
+		CC="$WORK/../arm-eabi-4.6/bin/arm-eabi-"
 	else
-		echo WTF is \"$answer\" supposed to mean anyways ?
-		echo
-		exit 1
+		LOG "WTF is \"$answer\" supposed to mean anyways ?"
+		DIE
 	fi
 fi
 
 #
 # cleanup
 #
-bash $WORK/clean
-rm -f ramdisk/*.img zip/{boot.img,*.zip,system/lib/modules/*}
+TRY bash $WORK/clean
 
 #
 # setup android initramfs
 #
-cd ramdisk/root
-find . -print | cpio -o -H crc | gzip -9n > ../ramdisk.img
+TRY cd $WORK/ramdisk/root
+TRY find . -print | cpio -o -H crc | gzip -9n > ../ramdisk.img
 
 #
 # setup recovery initramfs
 #
-cd ../recovery
-find . -print | cpio -o -H crc | gzip -9n > ../ramdisk-recovery.img
-cd $WORK
+TRY cd ../recovery
+TRY find . -print | cpio -o -H crc | gzip -9n > ../ramdisk-recovery.img
 
 #
 # setup config
 #
-make -j $J ARCH=arm CROSS_COMPILE=$CC cyanogenmod_fascinatemtd_defconfig
-sed -i "s/source\/usr\/fascinatemtd_initramfs.list/usr\/fascinatemtd_standalone_initramfs.list/" .config
+TRY cd ../..
+TRY make ARCH=arm CROSS_COMPILE=$CC cyanogenmod_fascinatemtd_defconfig
+TRY sed -i "s/source\/usr\/fascinatemtd_initramfs.list/usr\/fascinatemtd_standalone_initramfs.list/g" .config
 
 #
 # compile
 #
-make -j $J ARCH=arm CROSS_COMPILE=$CC zImage
-make -j $J ARCH=arm CROSS_COMPILE=$CC modules
+TRY make -j $J ARCH=arm CROSS_COMPILE=$CC zImage
+TRY make -j $J ARCH=arm CROSS_COMPILE=$CC modules
 
 #
 # package
 #
-echo
-if ! cp arch/arm/boot/zImage zip/boot.img ; then
-	echo Sumthin done fucked up. I suggest you fix it.
-	echo
-	exit 1
+if [ ! -e arch/arm/boot/zImage ]; then
+	LOG "Sumthin done fucked up. I suggest you fix it."
+	DIE
 else
-	cp `find . -name *.ko` zip/system/lib/modules
-	echo Creating update zip...
-	echo
-	cd zip && zip -r kernel_update-$DATE.zip .
+	ZIP
 fi
 
 #
 # Fin
 #
-echo
-echo Done !
-echo
+LOG "Done !"
