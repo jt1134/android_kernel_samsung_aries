@@ -13,12 +13,25 @@ WORK=$(dirname $0)
 DIE() { exit 1; }
 LOG() { printf "$@\n\n"; }
 TRY() { "$@" || DIE; }
+
 ZIP() {
-	TRY cd zip;
-	TRY cp ../arch/arm/boot/zImage boot.img;
-	TRY cp $(find ../ -name *.ko) system/lib/modules;
-	TRY zip -r kernel_update-$DATE.zip . ;
-	TRY mv kernel_update-$DATE.zip $HOME
+	# kernel
+	LOG "Installing kernel..."
+	TRY cp arch/arm/boot/zImage zip/boot.img
+
+	# modules
+	LOG "Installing modules..."
+	for i in $(find . -name *.ko); do
+		TRY "$CC"strip --strip-unneeded $i
+		TRY cp $i zip/system/lib/modules
+	done
+
+	# zip
+	LOG "Creating update.zip..."
+	TRY cd zip
+	TRY zip -rq kernel_update-$DATE.zip . 
+	TRY mv -f kernel_update-$DATE.zip $HOME
+	LOG "Kernel located at $HOME/kernel_update-$DATE.zip"
 }
 
 #
@@ -45,6 +58,7 @@ fi
 # cleanup
 #
 TRY bash $WORK/clean
+rm -f $HOME/kernel_update-$DATE.zip
 
 #
 # setup android initramfs

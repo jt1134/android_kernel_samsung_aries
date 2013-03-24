@@ -84,3 +84,4 @@ GTAGS
 ramdisk/*.img
 zip/boot.img
 zip/*.zip
+kernel_update*.zip
