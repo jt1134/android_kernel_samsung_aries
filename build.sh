@@ -10,9 +10,9 @@ J=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
 HOME=$(pwd)
 WORK=$(dirname $0)
 
-DIE() { exit 1; }
+DIE() { LOG "FAILED : $*"; exit 1; }
 LOG() { printf "$@\n\n"; }
-TRY() { "$@" || DIE; }
+TRY() { "$@" || DIE "$@"; }
 
 ZIP() {
 	# kernel
@@ -50,7 +50,8 @@ if [ ! -e "$WORK/$CC"gcc ]; then
 		CC="$WORK/../arm-eabi-4.6/bin/arm-eabi-"
 	else
 		LOG "WTF is \"$answer\" supposed to mean anyways ?"
-		DIE
+		printf "YOU "
+		DIE "AT LIFE"
 	fi
 fi
 
@@ -89,8 +90,7 @@ TRY make -j $J ARCH=arm CROSS_COMPILE=$CC modules
 # package
 #
 if [ ! -e arch/arm/boot/zImage ]; then
-	LOG "Sumthin done fucked up. I suggest you fix it."
-	DIE
+	DIE "Sumthin done fucked up. I suggest you fix it."
 else
 	ZIP
 fi
