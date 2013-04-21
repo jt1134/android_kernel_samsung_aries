@@ -4,7 +4,7 @@
 # setup environment
 # edit CC to match your toolchain path if you're not working inside the CM/AOSP built tree
 #
-CC="../../../prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-"
+CC="../../../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-"
 DATE=$(date +%m%d)
 J=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
 HOME=$(pwd)
@@ -45,9 +45,9 @@ if [ ! -e "$WORK/$CC"gcc ]; then
 
 	if [ $answer == 'Y' ]; then
 		LOG "This may take a while..."
-		TRY git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6 $WORK/../arm-eabi-4.6
+		TRY git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-eabi-4.7 $WORK/../arm-eabi-4.7
 		TRY sed -i "s/..\/..\/..\/prebuilts\/gcc\/linux-x86\/arm/../g" $0
-		CC="$WORK/../arm-eabi-4.6/bin/arm-eabi-"
+		CC="$WORK/../arm-eabi-4.7/bin/arm-eabi-"
 	else
 		LOG "WTF is \"$answer\" supposed to mean anyways ?"
 		printf "YOU "
